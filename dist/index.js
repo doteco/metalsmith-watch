@@ -30,10 +30,6 @@ var _multimatch = require("multimatch");
 
 var _multimatch2 = _interopRequireDefault(_multimatch);
 
-var _unyield = require("unyield");
-
-var _unyield2 = _interopRequireDefault(_unyield);
-
 var _metalsmithFilenames = require("metalsmith-filenames");
 
 var _metalsmithFilenames2 = _interopRequireDefault(_metalsmithFilenames);
@@ -200,12 +196,7 @@ function buildFiles(metalsmith, paths, livereload, options, previousFilesMap) {
 }
 
 function buildPattern(metalsmith, patterns, livereload, options, previousFilesMap) {
-  (0, _unyield2["default"])(metalsmith.read())(function (err, files) {
-    if (err) {
-      options.log(_chalk2["default"].red(nok + " " + err));
-      return;
-    }
-
+  metalsmith.read().then(function (files) {
     var filesToUpdate = {};
     (0, _multimatch2["default"])(Object.keys(files), patterns).forEach(function (path) {
       return filesToUpdate[path] = files[path];
@@ -213,6 +204,8 @@ function buildPattern(metalsmith, patterns, livereload, options, previousFilesMa
     var nbOfFiles = Object.keys(filesToUpdate).length;
     options.log(_chalk2["default"].gray("- Updating " + nbOfFiles + " file" + (nbOfFiles > 1 ? "s" : "") + "..."));
     runAndUpdate(metalsmith, filesToUpdate, livereload, options, previousFilesMap);
+  })["catch"](function (err) {
+    return options.log(_chalk2["default"].red(nok + " " + err));
   });
 }
 

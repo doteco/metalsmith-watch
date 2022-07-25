@@ -8,7 +8,6 @@ import async from "async"
 import gaze from "gaze"
 import color from "chalk"
 import multimatch from "multimatch"
-import unyield from "unyield"
 import metalsmithFilenames from "metalsmith-filenames"
 
 import livereloadServer from "./livereload"
@@ -176,18 +175,13 @@ function buildFiles(metalsmith, paths, livereload, options, previousFilesMap) {
 }
 
 function buildPattern(metalsmith, patterns, livereload, options, previousFilesMap) {
-  unyield(metalsmith.read())((err, files) => {
-    if (err) {
-      options.log(color.red(`${nok} ${err}`))
-      return
-    }
-
+  metalsmith.read().then(files => {
     const filesToUpdate = {}
     multimatch(Object.keys(files), patterns).forEach(path => filesToUpdate[path] = files[path])
     const nbOfFiles = Object.keys(filesToUpdate).length
     options.log(color.gray(`- Updating ${nbOfFiles} file${nbOfFiles > 1 ? "s" : ""}...`))
     runAndUpdate(metalsmith, filesToUpdate, livereload, options, previousFilesMap)
-  })
+  }).catch(err => options.log(color.red(`${nok} ${err}`)))
 }
 
 export default function(options) {
